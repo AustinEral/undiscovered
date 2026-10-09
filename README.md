@@ -47,7 +47,9 @@ Edit that config: set `qwen_model`, `llama_command`, and `comfy_url` to your ins
 python -m genre_radio --config "$HOME/.config/undiscovered/config.json" --port 3210
 ```
 
-Open **http://127.0.0.1:3210/radio**. Select **Start generation**, then **Play** when the first recording is ready.
+Open **http://127.0.0.1:3210/radio**. Startup prints the full player link for the selected port. If port 3210 is occupied, use `--port 3211`. Select **Start generation**, then **Play** when the first recording is ready.
+
+For phone access, use `--host` with your private VPN interface IP; see [Phone access](docs/setup.md#phone-access). Loopback remains the default.
 
 The Python module is named `genre_radio`; the app is Undiscovered. Run it from the checkout root so Python can find the module and its static assets.
 

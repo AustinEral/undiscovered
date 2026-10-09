@@ -1,5 +1,6 @@
 import asyncio
 import json
+from ipaddress import ip_address
 from pathlib import Path
 from urllib.parse import parse_qsl, urlsplit
 
@@ -7,12 +8,20 @@ from aiohttp import web
 
 ENGINE = web.AppKey('engine', object)
 STATIC = web.AppKey('static', Path)
+BIND_HOST = web.AppKey('bind_host', str)
+
+
+def bind_address(value):
+    address = ip_address(value)
+    if address.is_unspecified or address.is_multicast:
+        raise ValueError('Choose a specific local or private-interface IP, not a wildcard or multicast address.')
+    return str(address)
 
 
 @web.middleware
 async def request_boundary(request, handler):
     host = urlsplit('//' + request.host).hostname
-    if host not in {'127.0.0.1', 'localhost', '::1'}:
+    if host not in {'127.0.0.1', 'localhost', '::1', request.app[BIND_HOST]}:
         raise web.HTTPForbidden(text='Untrusted host')
     origin = request.headers.get('Origin')
     if origin and urlsplit(origin).netloc != request.host:
@@ -170,8 +179,10 @@ async def lifecycle(app):
     await app[ENGINE].close()
 
 
-def create_app(engine, static_root=None):
+def create_app(engine, static_root=None, *, host='127.0.0.1'):
+    host = bind_address(host)
     app = web.Application(middlewares=[request_boundary], client_max_size=64 * 1024)
+    app[BIND_HOST] = host
     app[ENGINE] = engine
     app[STATIC] = Path(static_root or Path(__file__).resolve().parent.parent / 'static')
     app.cleanup_ctx.append(lifecycle)

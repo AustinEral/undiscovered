@@ -455,7 +455,8 @@ class RadioEngine:
         fields = {'title', 'artist', 'text', 'source_url', 'source_name', 'original_genre', 'original_duration'}
         return dict(self._validate_lyrics({key: value for key, value in song.items() if key in fields}), id=lyric_id)
 
-    def _cached_lyrics(self):
+    def _cached_lyrics(self, provider=None):
+        provider = self._live_provider if provider is None else provider
         skipped_names, skipped_hashes = self._track_identities(self._skipped_inputs.values())
         records = []
         for lyric_id in self.lyrics:
@@ -465,7 +466,7 @@ class RadioEngine:
                 continue
             if song_key(song) in skipped_names or lyrics_hash(song['text']) in skipped_hashes:
                 continue
-            if self._live_provider.accepts_cached(song):
+            if provider.accepts_cached(song):
                 records.append(song)
         def metadata(track):
             saved = self.lyrics.get(track.get('lyrics_id'))
@@ -482,7 +483,7 @@ class RadioEngine:
         lyric_id = preferences['lyrics_id']
         if lyric_id == 'auto':
             if time.monotonic() < self._chart_retry_at:
-                saved = self._cached_lyrics()
+                saved = self._cached_lyrics(provider)
                 if saved is None:
                     raise self._chart_failure
                 return self._saved_request(saved, genre=preferences['genre'], notice=SAVED_INPUT_NOTICE)
@@ -497,7 +498,7 @@ class RadioEngine:
                 else:
                     request = provider.prepare_request(song, genre=preferences['genre'])
             except (ValueError, aiohttp.ClientError, TimeoutError) as error:
-                saved = self._cached_lyrics()
+                saved = self._cached_lyrics(provider)
                 if saved is None:
                     raise
                 self._chart_retry_at = time.monotonic() + CHART_RETRY_SECONDS

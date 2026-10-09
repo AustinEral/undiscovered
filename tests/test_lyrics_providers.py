@@ -1,3 +1,4 @@
+import asyncio
 import json
 import tempfile
 import unittest
@@ -128,6 +129,35 @@ class ProviderEngineTests(unittest.IsolatedAsyncioTestCase):
         self.assertIsInstance(restored._live_provider, FixtureProvider)
         self.assertEqual(restored.preferences['lyrics_source'], 'fixture')
         self.assertEqual(restored._cached_lyrics()['title'], 'Persistent cache')
+
+    async def test_failed_acquisition_uses_captured_provider_cache_after_preferences_change(self):
+        original = self.save('Original source selection', 'Jazz')
+        self.save('Future source selection', 'Rock')
+        self.engine.update_preferences({'genre': 'Jazz'})
+        captured = self.engine._live_provider
+        entered = asyncio.Event()
+        release = asyncio.Event()
+
+        async def acquire(provider):
+            entered.set()
+            await release.wait()
+            raise ValueError('Fixture discovery unavailable')
+
+        def accepts_cached(provider, song):
+            return song['source_name'] == provider.context['preferences']['genre']
+
+        with patch.object(FixtureProvider, 'acquire', acquire), patch.object(FixtureProvider, 'accepts_cached', accepts_cached):
+            task = asyncio.create_task(self.engine._request())
+            await entered.wait()
+            self.engine.update_preferences({'genre': 'Rock'})
+            self.assertIsNot(self.engine._live_provider, captured)
+            release.set()
+            request = await task
+
+        self.assertEqual(request['genre'], 'Jazz')
+        self.assertEqual(request['lyrics_id'], original['id'])
+        self.assertEqual(request['lyrics'], original['text'])
+        self.assertEqual(self.engine.preferences['genre'], 'Rock')
 
     async def test_other_sources_do_not_hide_adapter_failure(self):
         self.save('Different source', 'Genius')

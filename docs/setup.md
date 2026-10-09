@@ -69,9 +69,20 @@ On restart the server restores the library and ready queue without starting GPU 
 
 ## Phone access
 
-The backend deliberately binds to loopback and accepts local hosts. Publishing the source does not turn it into a public hosted service.
+The backend defaults to loopback. For direct private-network access, bind it to a specific VPN interface IP. With Tailscale connected on both devices:
 
-For phone access, use the [DSH bridge](dsh.md) through an existing private DSH origin, or a private authenticated reverse proxy configured to forward the upstream Host and Origin consistently to the loopback backend. Do not disable the Host/Origin checks to make a proxy work.
+```bash
+python -m genre_radio \
+  --config "$HOME/.config/undiscovered/config.json" \
+  --host "$(tailscale ip -4)" \
+  --port 3211
+```
+
+Open the `http://IP:3211/radio` link printed at startup on your phone. This uses Tailscale's encrypted network directly; it does not need an HTTPS Serve rule or administrator access. Choose another free port if needed. Only the selected interface is bound, and the app accepts that Host while retaining Origin checks. Wildcard and multicast bind addresses are rejected.
+
+The app has no standalone login. Bind only to an interface reachable by people you trust, and use your VPN access controls. Do not expose this listener to the public internet.
+
+Alternatively, use the [DSH bridge](dsh.md) through an existing private DSH origin, or a private authenticated reverse proxy configured to forward the upstream Host and Origin consistently to the loopback backend. Do not disable the Host/Origin checks to make a proxy work.
 
 Mobile browsers can require a Play tap after a long generation. Keep the page open for reliable handoff; uninterrupted background and lock-screen playback depends on the browser.
 
