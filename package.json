@@ -1,0 +1,12 @@
+{
+  "name": "undiscovered",
+  "version": "0.2.0",
+  "private": true,
+  "license": "MIT",
+  "engines": {"node": ">=22"},
+  "type": "module",
+  "description": "Undiscovered: personal radio using local Qwen, MiniMax Music 3, and Krea",
+  "main": "dsh-undiscovered.mjs",
+  "exports": {".": "./dsh-undiscovered.mjs", "./package.json": "./package.json"},
+  "scripts": {"check:js": "node --check dsh-undiscovered.mjs && node --check static/app.js"}
+}

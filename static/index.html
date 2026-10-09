@@ -1,0 +1,121 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#171918">
+  <meta name="color-scheme" content="dark">
+  <title>Undiscovered</title>
+  <script type="module">
+    const pagePath = location.pathname.replace(/\/$/, '');
+    if (['/genre-radio', '/api/genre-radio'].includes(pagePath)) history.replaceState(history.state, '', '/undiscovered' + location.search + location.hash);
+    const base = ['/undiscovered', '/genre-radio'].includes(pagePath) ? '/api/genre-radio' : pagePath;
+    const stylesheet = document.createElement('link');
+    stylesheet.rel = 'stylesheet';
+    stylesheet.href = `${base}/styles.css`;
+    document.head.append(stylesheet);
+    import(`${base}/app.js`).catch(() => {
+      document.getElementById('connection').textContent = 'Player failed to load. Refresh to retry.';
+    });
+  </script>
+</head>
+<body>
+  <main class="radio">
+    <header class="masthead">
+      <a class="wordmark" href="" aria-label="Undiscovered home"><span class="brand-dot" aria-hidden="true"></span><strong>Undiscovered</strong></a>
+      <button id="starred-toggle" class="secondary-button" type="button" aria-expanded="false" aria-controls="starred-panel">Starred</button>
+      <button id="fullscreen-toggle" class="secondary-button" type="button" aria-pressed="false">Fullscreen</button>
+      <button id="immersive-controls" class="text-button" type="button" aria-expanded="false">Show controls</button>
+      <span id="connection" class="connection" role="status">Connecting…</span>
+    </header>
+    <section id="starred-panel" class="starred-panel" aria-labelledby="starred-heading" hidden>
+      <div class="section-heading"><h2 id="starred-heading">Starred recordings</h2><button id="refresh-starred" class="text-button" type="button">Refresh library</button></div>
+      <p class="field-note">Saved on this server. Playing a recording here changes only this device, not the radio queue.</p>
+      <p id="starred-status" class="field-note" role="status"></p>
+      <ul id="starred-list" class="starred-list"></ul>
+    </section>
+    <div class="player-layout">
+      <section class="art-column" aria-label="Album cover">
+        <button class="cover" id="cover-frame" type="button" aria-label="Enter fullscreen player" disabled>
+          <span class="cover-placeholder" id="cover-placeholder" aria-hidden="true"><span></span><span></span><span></span></span>
+          <img id="cover" alt="" hidden>
+          <span class="cover-caption" id="cover-caption">A little room for discovery.</span>
+        </button>
+        <p class="art-note">Made here. Played here. <span>Something different next.</span></p>
+      </section>
+      <section class="player" aria-label="Music player">
+        <div class="eyebrow"><span class="live-dot" id="live-dot" aria-hidden="true"></span><span id="playback-status" role="status">Your own frequency</span></div>
+        <div id="library-mode" class="library-mode" hidden><span>Library playback · this device</span><button id="back-to-radio" class="text-button" type="button">Back to radio</button></div>
+        <div class="track-heading"><h1 id="track-title">Find your next sound.</h1><button id="star-track" class="star-button" type="button" aria-label="Star this recording" aria-pressed="false" disabled><span id="star-icon" aria-hidden="true">☆</span><span id="star-label">Star</span></button></div>
+        <p id="star-status" class="field-note" role="status" hidden></p>
+        <p id="track-meta" class="track-meta">Your lyrics. A new genre. An original cover.</p>
+        <div class="track-tags"><span id="track-genre" class="tag">Open to anything</span><span id="track-origin" class="muted">Generated for you</span></div>
+        <p id="track-source" class="field-note" hidden><span id="track-source-label"></span><a id="track-source-link" class="source-link" target="_blank" rel="noopener noreferrer" hidden></a></p>
+        <p id="track-plan" class="field-note" hidden></p>
+        <div class="timeline">
+          <label class="sr-only" for="seek">Playback position</label>
+          <input id="seek" type="range" min="0" max="0" value="0" step="0.1" disabled>
+          <div class="time-labels"><span id="elapsed">0:00</span><span id="duration">0:00</span></div>
+        </div>
+        <div class="transport">
+          <button id="play" class="play-button" type="button" disabled><span id="play-icon" aria-hidden="true">▶</span><span id="play-label">Play</span></button>
+          <button id="skip" class="icon-button" type="button" aria-label="Skip to next track" title="The next track is not ready yet" disabled><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5v14l11-7zM19 5v14"/></svg></button>
+          <div class="volume-control"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M11 4 5 9H2v6h3l6 5V4Zm5 4a6 6 0 0 1 0 8m3-11a10 10 0 0 1 0 14"/></svg><label class="sr-only" for="volume">Volume</label><input id="volume" type="range" min="0" max="1" step="0.01" value="0.8"></div>
+        </div>
+        <p id="playback-note" class="playback-note" role="status">Choose Start generation to make your first track, then press Play to listen.</p>
+        <section class="generation-row" aria-label="Generation controls">
+          <div><h2>Generation</h2><p id="generation-status" role="status">Paused</p></div>
+          <button id="generation-toggle" class="secondary-button" type="button" aria-describedby="generation-hint" disabled>Start generation</button>
+        </section>
+        <p id="generation-hint" class="field-note">Pausing generation lets the current job finish. Audio is controlled separately.</p>
+        <div id="error-box" class="error-box" role="alert" hidden><p id="error-message"></p><p id="failure-title" hidden></p><div class="error-actions"><button id="retry" class="text-button" type="button">Retry generation</button><button id="generate-another" class="text-button" type="button" hidden>Generate another song</button></div></div>
+        <section class="up-next" aria-labelledby="up-next-label">
+          <div class="section-heading"><h2 id="up-next-label">Up next</h2></div>
+          <div class="next-body"><div class="next-art" aria-hidden="true"><img id="next-cover" alt="" hidden><span id="next-placeholder">↗</span></div><div class="next-copy"><h3 id="next-title">A fresh direction</h3><p id="next-detail">A few songs ahead, never a fixed playlist.</p><progress id="generation-progress" max="1" hidden aria-label="Next track generation progress"></progress></div><span id="next-badge" class="next-badge">Waiting</span></div>
+          <p class="buffer-status"><span id="buffer-count">0 / 5 ready</span><span id="buffer-stage"></span></p>
+          <p id="next-plan" class="field-note" hidden></p>
+          <p id="station-notice" class="field-note" role="status" hidden></p>
+        </section>
+        <details id="next-panel" class="next-panel">
+          <summary id="controls-toggle">Controls</summary>
+          <div id="controls-body">
+          <p class="field-note">Settings save automatically for future generations. Current audio, queued tracks, and work in progress stay unchanged.</p>
+          <form id="preferences-form">
+            <fieldset id="preferences-fields" disabled>
+              <label for="genre">Genre</label><select id="genre"><option value="Auto">Auto · Qwen chooses</option></select>
+              <div id="custom-genre-field" hidden><label for="custom-genre">Your genre</label><input id="custom-genre" type="text" maxlength="120" placeholder="e.g. sun-drenched psychedelic soul"></div>
+              <label for="lyrics-choice">Source</label><select id="lyrics-choice" aria-describedby="source-hint"><option value="auto">Auto · Fresh + saved songs</option></select>
+              <p id="source-hint" class="field-note">Auto prefers new chart songs, then makes fresh versions from saved lyrics. You can also choose a song below.</p>
+              <p id="length-policy" class="field-note">Length · Model decides · Maximum 6:00</p>
+              <p id="preferences-status" class="field-note" role="status">Saved for future generations.</p>
+            </fieldset>
+          </form>
+          <details id="paste-details"><summary>Use my own lyrics</summary><form id="lyrics-form"><fieldset id="lyrics-fields" disabled>
+            <label for="lyrics-title">Title</label><input id="lyrics-title" name="title" required maxlength="160" placeholder="Song title">
+            <label for="lyrics-artist">Artist</label><input id="lyrics-artist" name="artist" maxlength="160" autocomplete="off" required>
+            <label for="lyrics-text">Lyrics</label><textarea id="lyrics-text" name="text" rows="7" required maxlength="14000" placeholder="Paste lyrics you want to use…"></textarea>
+            <p class="field-note">Uses this song once, then returns to Genius radio.</p>
+            <p class="field-note">Saved privately on this server. Lyrics are used unchanged.</p>
+            <button class="secondary-button" id="save-select" type="submit">Use for next generation</button>
+            <p id="lyrics-status" class="field-note" role="status"></p>
+          </fieldset></form></details>
+          </div>
+        </details>
+        <details id="current-prompts" class="current-prompts" hidden>
+          <summary>View prompts</summary>
+          <div class="prompt-heading"><h2>Music prompt</h2><button id="copy-music-prompt" class="text-button" type="button" disabled>Copy music prompt</button></div>
+          <pre id="music-prompt">Unavailable for this track.</pre>
+          <div class="prompt-heading"><h2>Cover prompt</h2><button id="copy-cover-prompt" class="text-button" type="button" disabled>Copy cover prompt</button></div>
+          <pre id="cover-prompt">Unavailable for this track.</pre>
+          <p id="prompts-status" class="field-note" role="status"></p>
+        </details>
+        <details id="current-lyrics" class="current-lyrics" hidden><summary>This track's lyrics</summary><p id="current-lyrics-meta" class="field-note"></p><pre id="current-lyrics-text"></pre><a id="current-lyrics-source" class="source-link" target="_blank" rel="noopener noreferrer" hidden>Original source ↗</a></details>
+      </section>
+    </div>
+    <footer>Just you and the next song.<span>Radio makes fresh versions. Star recordings to play them again. Audio never loops automatically.</span></footer>
+
+    <audio id="audio" preload="auto" playsinline></audio>
+    <noscript>This player needs JavaScript for playback and generation controls.</noscript>
+  </main>
+</body>
+</html>

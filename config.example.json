@@ -1,0 +1,21 @@
+{
+  "data_dir": "~/Music/GenreRadio",
+  "comfy_url": "http://127.0.0.1:8188",
+  "qwen_model": "/ABSOLUTE/PATH/TO/model.gguf",
+  "llama_command": ["/ABSOLUTE/PATH/TO/llama-server"],
+  "qwen_port": 8192,
+  "gpu_device": "0",
+  "qwen_context": 8192,
+  "qwen_tokens": 1600,
+  "buffer_size": 5,
+  "cover_size": 1536,
+  "lyrics_provider": "genius",
+  "models": {
+    "cover_model": "krea2_turbo_bf16.safetensors",
+    "cover_clip": "qwen3vl_4b_bf16.safetensors",
+    "cover_vae": "qwen_image_vae.safetensors",
+    "music_model": "minimax_music3_dit_fp16.safetensors",
+    "music_clip": "minimax_music3_text_encoder_pruned_int8_convrot.safetensors",
+    "music_vae": "minimax_music3_dav.safetensors"
+  }
+}
