@@ -61,6 +61,16 @@ The planner, cover, and music stages run sequentially. The app waits for the con
 
 Planner admission requires the GGUF file size rounded up to MiB plus 6,144 MiB of free memory. This is an admission estimate, not a whole-pipeline VRAM minimum or a reservation. Cover and music memory depend on their models, precision, and duration. No fixed minimum is claimed for every configuration.
 
+## Keeping up with playback
+
+The five-track queue is a target, not a startup guarantee. Generation must produce audio faster than it is consumed to maintain continuous playback. A full buffer absorbs occasional slow songs; it cannot compensate indefinitely for a backend that runs slower than real time.
+
+Keep ComfyUI's CUDA-graph acceleration enabled for MiniMax Music 3. Its autoregressive model generates many frames per second of audio, so graph replay matters even on a large GPU. Flags such as `--disable-cuda-graphs`, `--disable-dynamic-vram`, and, in newer Comfy builds, `--disable-comfy-compiler` can disable this fast path. A graph that passes API validation can still run too slowly for radio playback.
+
+If a shared Comfy server needs those flags for unrelated work, run a separate compatible Comfy backend on another loopback port and set `comfy_url` to that address. Keep its user, output, and temporary directories separate; existing model files can be shared. Do not interrupt another service's queue or disable its required settings. Avoid generating on both backends at once when they share a GPU.
+
+To check throughput, compare the sum of a recording's manifest `timings` with its measured `duration`, accounting separately for any source-acquisition or queue wait outside those stages. For sustained playback, the average complete generation time must be lower than the audio duration. Check more than the model progress percentage, which is local to a model step rather than an end-to-end ETA. First-use initialization can be slower than later runs.
+
 ## Data and restart behavior
 
 Each recording has its own directory with audio, cover, manifest, and generation diagnostics. The app never automatically deletes recordings. Keep `data_dir` outside the source checkout and back it up if you want to retain your station.
