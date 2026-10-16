@@ -8,6 +8,10 @@ Undiscovered runs a local production loop: Qwen plans the track, Krea paints the
 
 No accounts. No cloud database. No frontend build. Your models, your station.
 
+![Undiscovered desktop player with synthwave artwork, playback controls, and five tracks ready in the queue.](docs/images/undiscovered.png)
+
+*The actual player, shown with demo tracks and illustrative artwork.*
+
 ## What stays in the mix
 
 - **Auto or your own direction.** Choose from 72 genres, or type a custom style.
